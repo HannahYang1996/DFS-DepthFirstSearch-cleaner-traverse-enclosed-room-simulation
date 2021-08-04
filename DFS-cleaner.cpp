@@ -97,7 +97,7 @@ void set_environment()
 
 	//after number of pixels per unit area given by user, resolution of the environment map is reduced from
 	//(show_image.cols x show_image.rows) to (show_image.cols/scale x show_image.rows/scale)
-	//informations in the image are then transformed and being stored into the environment array 
+	//informations in the image are then transformed and stored into the environment array 
 	int unit_area = 0;
 	cout << endl;
 	cout << "****************************************************************************************************" << endl;
@@ -127,10 +127,10 @@ void set_environment()
         }
     }
 
-    //as if any of the pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) is black
+    //if any of the pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) is black
 	//(bgr.val[0] <= 50 && bgr.val[1] <= 50 && bgr.val[2] <= 50),
 	//we will write 1 into environment[i][j], which is (i,j) exists obstacle
-	//as if any of the pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) is red
+	//if any of the pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) is red
 	//(2*bgr.val[0] <= bgr.val[2] && 2*bgr.val[1] <= bgr.val[2]),
 	//we will add i and j to at_environment_r and at_environment_c,respectively, and take the average, which is the start position of the car
 	at_environment_r = 0;
@@ -234,10 +234,10 @@ void set_environment()
 		local_output = VideoWriter(String(local_animation_file_name),codec,FPS,S,true);
 	}
 
-    //as if (i,j) is in the nine-square division region centered on (at_environment_r,at_environment_c), 
+    //if (i,j) is in the nine-square division region centered on (at_environment_r,at_environment_c), 
 	//set pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) to blue
 	//(bgr.val[0] = 255; bgr.val[1] = 0; bgr.val[2] = 0)
-	//as if environment[i][j] is 1, set pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) to black
+	//if environment[i][j] is 1, set pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) to black
 	//(bgr.val[0] = 0; bgr.val[1] = 0; bgr.val[2] = 0)
 	for(int i = 0; i < nr; i++)
     {
@@ -275,7 +275,7 @@ void set_environment()
 	//show image during execution
 	namedWindow( "DFS cleaning process_global - Display window", CV_WINDOW_AUTOSIZE );
 	namedWindow( "DFS cleaning process_local - Display window", CV_WINDOW_AUTOSIZE );
-	resize(global_animation_image,show_image,Size(800*global_animation_image.cols/global_animation_image.rows,800));
+	resize(global_animation_image,show_image,Size(600*global_animation_image.cols/global_animation_image.rows,600));
     imshow( "DFS cleaning process_global - Display window", show_image ); 
     waitKey(5);
 }
@@ -668,12 +668,14 @@ public:
 
 	void print_obstacle_route_and_car()
 	{
-		//as if local_map[i][j].obstacle_or_not is 1, set pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) to black
+		//if (i,j) is at the periphery of the local_map, set pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) to red
+		//(bgr.val[0] = 0; bgr.val[1] = 0; bgr.val[2] = 255)
+		//if local_map[i][j].obstacle_or_not is 1, set pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) to black
 		//(bgr.val[0] = 0; bgr.val[1] = 0; bgr.val[2] = 0)
-		//as if (i,j) is in the nine-square division region centered on (at_local_nr,at_local_nc), 
+		//if (i,j) is in the nine-square division region centered on (at_local_nr,at_local_nc), 
 		//set pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) to blue
 		//(bgr.val[0] = 255; bgr.val[1] = 0; bgr.val[2] = 0)
-		//as if local_map[i][j].cleaned_or_not > 0, set pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) to different degrees of blue
+		//if local_map[i][j].cleaned_or_not > 0, set pixels in nrow = scale*i ~ scale*(i+1), ncol = scale*j ~ scale*(j+1) to different degrees of blue
 		//(bgr.val[0] = 255; bgr.val[1] = 180 - 5*local_map[i][j].cleaned_or_not; bgr.val[2] = 180 - 5*local_map[i][j].cleaned_or_not)
 		//else, set pixels to white(bgr.val[0] = 255; bgr.val[1] = 255; bgr.val[2] = 255)
 
@@ -682,7 +684,20 @@ public:
 		{
 			for (int j = 0; j < nc_size; j++)
 			{
-				if (local_map[i][j].obstacle_or_not == 1)
+				if(i == 0 || i == nr_size-1 || j == 0 || j == nc_size-1)
+				{
+					for(size_t nrow = scale*(at_environment_r-at_local_nr+i); nrow < scale*(at_environment_r-at_local_nr+i+1); nrow++)
+					{
+						for(size_t ncol = scale*(at_environment_c-at_local_nc+j); ncol < scale*(at_environment_c-at_local_nc+j+1); ncol++)
+						{
+							Vec3b& bgr = local_animation_image.at<Vec3b>(nrow,ncol);
+							bgr[0] = 0;
+							bgr[1] = 0;
+							bgr[2] = 255;									
+						}
+					}
+				}
+				else if (local_map[i][j].obstacle_or_not == 1)
 				{
 					for(size_t nrow = scale*(at_environment_r-at_local_nr+i); nrow < scale*(at_environment_r-at_local_nr+i+1); nrow++)
 					{
@@ -774,9 +789,9 @@ public:
 		global_output << global_animation_image;
 		local_output << local_animation_image;
 		//show images during execution
-		resize(global_animation_image,show_image,Size(800*global_animation_image.cols/global_animation_image.rows,800));
+		resize(global_animation_image,show_image,Size(600*global_animation_image.cols/global_animation_image.rows,600));
     	imshow( "DFS cleaning process_global - Display window", show_image );
-		resize(local_animation_image,show_image,Size(800*local_animation_image.cols/local_animation_image.rows,800));
+		resize(local_animation_image,show_image,Size(600*local_animation_image.cols/local_animation_image.rows,600));
     	imshow( "DFS cleaning process_local - Display window", show_image ); 
         waitKey(5);
 	}
