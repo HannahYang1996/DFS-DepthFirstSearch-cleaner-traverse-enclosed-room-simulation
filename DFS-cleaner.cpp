@@ -65,9 +65,8 @@ void set_environment()
 	cout << "	(Draw the enclosed room and obstacles in it with black,";
 	cout << "draw the start position with red." << endl;
 	cout << "	You can turn frame an angle and draw your enclosed area to simulate a car with oblique start direction.)" << endl;
-	cout << endl;
+	cout << "	>> ";
 
-	cout << "	";
 	i = 0;
 	while((ch = getchar()) != '\n')
 	{
@@ -107,7 +106,8 @@ void set_environment()
     cout << "	The program will now transforms it into an environment array." << endl;
 	while(unit_area < 1)
 	{
-		cout << "	How many pixels do you assume a unit area to occupy? (must be larger than 1) ";
+		cout << "	How many pixels do you assume a unit area to occupy? (must be larger than 1)" << endl;
+		cout << "	>> ";
     	cin >> unit_area;
     	cout << endl;
 	}
@@ -186,7 +186,7 @@ void set_environment()
 	cout << "	Name the animation file:" << endl;
 	getchar();
 
-	cout << "	";
+	cout << "	>> ";
 	i = 0;
 	while((ch = getchar()) != '\n')
 	{
@@ -706,7 +706,7 @@ public:
 							Vec3b& bgr = local_animation_image.at<Vec3b>(nrow,ncol);
 							bgr[0] = 0;
 							bgr[1] = 0;
-							bgr[2] = 0;									
+							bgr[2] = 0;					
 						}
 					}
 				}
